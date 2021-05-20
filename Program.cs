@@ -7,14 +7,12 @@ namespace DailyLogsTool
 {
     class Program
     {
-        public static string ProgramDirectory => AppDomain.CurrentDomain.BaseDirectory;
-        public static string ConfigFilePath => $"{ProgramDirectory}config.json";
-        public static bool ConfigFileIsMissing => !File.Exists(ConfigFilePath);
-        
         public static void Main(string[] args)
         {
             if (ConfigFileIsMissing)
             {
+                Console.WriteLine("Daily Logs Configuration File Missing.");
+                Console.WriteLine();
                 MakeConfigFile();
                 return;
             }
@@ -22,22 +20,28 @@ namespace DailyLogsTool
             MakeFilesFromConfig();
         }
 
+        public static string ProgramDirectory => AppDomain.CurrentDomain.BaseDirectory;
+        public static string ConfigFilePath => $"{ProgramDirectory}config.json";
+        public static bool ConfigFileIsMissing => !File.Exists(ConfigFilePath);
+        
         public static void MakeConfigFile()
         {
             // 1. Create config file
+            Console.WriteLine($"Generating Config File: ({ConfigFilePath})");
             File.WriteAllText(ConfigFilePath, Config.Default.AsJson);
 
             // 2. Show config file (if on windows)
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
+                Console.WriteLine("Opening File Explorer window to file location.");
                 Process.Start("explorer.exe", $"/select,\"{ConfigFilePath}\"");
             }
 
             // 3. tell user to edit config file
-            Console.WriteLine($"Config File Generated. ({ConfigFilePath})");
-            Console.WriteLine("Opening File Explorer window to file location.");
             Console.WriteLine("Please ensure settings are correct to your preference.");
-            Console.WriteLine("Press [Enter] to exit.");
+            Console.WriteLine("- Program does not validate paths. Please ensure they are correct.");
+            Console.WriteLine();
+            Console.WriteLine("Press [Enter] to exit the program.");
             Console.ReadLine();
         }
 
@@ -114,7 +118,7 @@ namespace DailyLogsTool
         {
             while (day.DayOfWeek != targetDay)
             {
-                day = iterateFunc(day);
+                day = iterateFunc.Invoke(day);
             }
 
             return day.Date;
